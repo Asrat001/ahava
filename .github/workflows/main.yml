@@ -1,0 +1,62 @@
+name: Flutter Build APK
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Clean up Gradle cache
+        run: rm -rf ~/.gradle/caches
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.29.0"
+          channel: 'stable'
+          cache: true
+
+      - name: Clean and Reinstall Dependencies
+        run: |
+          flutter clean
+          flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --split-per-abi
+
+      - name: Upload APK as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: build/app/outputs/flutter-apk/*.apk
+
+      - name: Upload APK to Telegram Group
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          for file in build/app/outputs/flutter-apk/*.apk; do
+            curl -F document=@"$file" \
+                 -F chat_id="$TELEGRAM_CHAT_ID" \
+                 -F caption="📱 New APK Build Available! 🚀" \
+                 "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendDocument"
+          done
