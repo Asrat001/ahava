@@ -11,10 +11,10 @@ class ProfileScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const CircleAvatar(
+               CircleAvatar(
                 radius: 50,
                 backgroundColor: Colors.white,
-                child: Icon(Icons.person, size: 64, color: Colors.grey),
+                child: Icon(Icons.person, size: 64, color: Colors.grey.shade400),
               ),
               const SizedBox(height: 16),
               Text(
